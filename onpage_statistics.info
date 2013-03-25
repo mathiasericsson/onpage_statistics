@@ -1,0 +1,5 @@
+name = On page statistics
+description = A module that shows statistics specifict for the current page for editors. 
+core = 7.x
+
+dependencies[] = google_analytics_api

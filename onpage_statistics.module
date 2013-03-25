@@ -1,0 +1,134 @@
+<?php
+/**
+ * @file
+ * A module to show statistics from Google on a specific page for editors
+ */
+
+/**
+ * Implements hook_help.
+ *
+ * Displays help and module information.
+ *
+ * @param path
+ *   Which path of the site we're using to display help
+ * @param arg
+ *   Array that holds the current path as returned from arg() function
+ */
+
+function onpage_statistics_help($path, $arg) {
+	switch ($path) {
+		case "admin/help#onpage_statistics" :
+			return '<p>' . t("Displays statistics for this particular page") . '</p>';
+			break;
+	}
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function onpage_statistics_block_info() {
+	$blocks['onpage_statistics'] = array('info' => t('On Page statistics'), //The name that will appear in the block list.
+	'cache' => DRUPAL_CACHE_PER_ROLE,   //Default
+	);
+	return $blocks;
+}
+
+function onpage_statistics_block_view($delta = '') {
+	switch($delta) {
+		case 'onpage_statistics' :
+			$block['subject'] = t('On page statistics');
+		
+			if (user_access('access content')) {
+					
+				$block['content'] = onpage_statistics_get_statistics();
+			}
+
+			break;
+	}
+	return $block;
+
+}
+
+function onpage_statistics_get_statistics() {
+	
+	$pagePath = drupal_get_normal_path($_GET['q']);
+	
+	/*Check if startpage, Drupal returns node but google analtycs tracks this */
+	if($pagePath == 'node')
+	{
+		$pagePath = '/';
+	}
+	
+	$content = onpage_statistics_get_page_statistics($pagePath);
+	$content .= onpage_statistics_get_previous_pages($pagePath);
+	$content .= testing();	
+	
+	return $content;
+}
+
+function testing(){
+	 $params = array(
+    'metrics' => array('ga:visits'),
+    'dimensions' => array('ga:browser'),
+   'sort_metric' => array('-ga:visits'),
+    'start_date' => strtotime('-31 days'),
+    'end_date' => strtotime('0 day'),
+  );
+  $feed = google_analytics_api_report_data($params);
+  if ($feed->error) {
+    return FALSE;
+  }
+  foreach ($feed->results as $row) {
+    $data .= $row['browser'] . '-' . $row['visits'] . ' visits<br />';
+}
+  return $data;
+  }
+
+
+function onpage_statistics_get_previous_pages($pagePath){
+	$params = array(
+	'dimension' => array('ga:previousPagePath'),
+	'metrics' => array('ga:pageviews'),
+	'filters' => array('ga:pagePath=~' . $pagePath),
+	'start_date' => strtotime('-31 days'),
+	'end_date' => strtotime('0 day'), );
+	
+	$feed = google_analytics_api_report_data($params);
+	
+	if ($feed -> error) {
+		return $content .= '' . $feed -> error;
+	}
+	
+
+	/*Print statistics*/ 
+	foreach ($feed->results as $row) {
+		$content .= '<p>'. $row['previousPagePath'] . ' number of clicks ' . $row['pageviews'] . '</p>';
+	}
+	
+
+	return $content;
+}
+
+function onpage_statistics_get_page_statistics($pagePath){
+	
+	
+	$params = array(
+	'metrics' => array('ga:pageviews,ga:uniquePageviews'),
+	'filters' => array('ga:pagePath=~' . $pagePath),
+	'start_date' => strtotime('-31 days'), //TODO: Make dynamic
+	'end_date' => strtotime('0 day'), ); //TODO: Make dynamic
+	
+	$feed = google_analytics_api_report_data($params);
+
+	if ($feed -> error) {
+		return $content = '' . $feed -> error;
+	}
+
+	/*Print statistics*/ 
+	foreach ($feed->results as $row) {
+		$content = 'From ' . date('Y-m-d', $params['start_date']) . ' to ' . date('Y-m-d', $params['end_date']) . '<br />';	
+		$content .= 'this page has ' . $row['pageviews'] . ' page views and ' . $row['uniquePageviews'] . ' unique page views';
+	}
+	
+	return $content;
+}
