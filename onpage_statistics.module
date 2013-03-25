@@ -61,7 +61,7 @@ function onpage_statistics_get_statistics() {
 	
 	$content = onpage_statistics_get_page_statistics($pagePath);
 	$content .= onpage_statistics_get_previous_pages($pagePath);
-	$content .= testing();	
+	//$content .= testing();	
 	
 	return $content;
 }
