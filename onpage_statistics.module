@@ -3,7 +3,7 @@
  * @file
  * A module to show statistics from Google on a specific page for editors
  */
-
+ 
 /**
  * Implements hook_help.
  *
@@ -60,13 +60,13 @@ function onpage_statistics_get_statistics() {
 	}
 	
 	$content = onpage_statistics_get_page_statistics($pagePath);
-	$content .= onpage_statistics_get_previous_pages($pagePath);
-	//$content .= testing();	
+	$content .= "<h3>Previous page</h3>" . onpage_statistics_get_previous_pages($pagePath);
+	$content .= browsers();	
 	
 	return $content;
 }
 
-function testing(){
+function browsers(){
 	 $params = array(
     'metrics' => array('ga:visits'),
     'dimensions' => array('ga:browser'),
@@ -98,10 +98,12 @@ function onpage_statistics_get_previous_pages($pagePath){
 	if ($feed -> error) {
 		return $content .= '' . $feed -> error;
 	}
-	
+	var_dump($feed->results);	
 
 	/*Print statistics*/ 
 	foreach ($feed->results as $row) {
+		
+		//var_dump($row);
 		$content .= '<p>'. $row['previousPagePath'] . ' number of clicks ' . $row['pageviews'] . '</p>';
 	}
 	
