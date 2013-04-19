@@ -98,8 +98,7 @@ function onpage_statistics_get_previous_pages($pagePath){
 	if ($feed -> error) {
 		return $content .= '' . $feed -> error;
 	}
-	var_dump($feed->results);	
-
+	
 	/*Print statistics*/ 
 	foreach ($feed->results as $row) {
 		
